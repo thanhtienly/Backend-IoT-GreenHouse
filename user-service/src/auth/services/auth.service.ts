@@ -5,7 +5,6 @@ import { SignInDTO } from 'src/dto/auth.dto';
 import { UserService } from 'src/services/user.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { accessTokenConfig, refreshTokenConfig } from '../jwt.config';
 
 @Injectable()
 export class AuthService {
@@ -42,8 +41,15 @@ export class AuthService {
       name: user.name,
       role: user.role,
     };
-    const accessToken = this.jwtService.sign(payload, accessTokenConfig);
-    const refreshToken = this.jwtService.sign(payload, refreshTokenConfig);
+
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: this.configService.get('JWT_ACCESS_EXPIRES_IN'),
+      secret: this.configService.get('JWT_ACCESS_SECRET'),
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+    });
 
     return {
       status: 200,

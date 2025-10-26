@@ -1,0 +1,35 @@
+import { DataSource } from 'typeorm';
+import { Global, Module } from '@nestjs/common';
+
+@Module({
+  imports: [],
+  providers: [
+    {
+      provide: DataSource, // add the datasource as a provider
+      inject: [],
+      useFactory: async () => {
+        // using the factory function to create the datasource instance
+        try {
+          const dataSource = new DataSource({
+            type: 'postgres',
+            host: process.env.DB_HOST,
+            username: process.env.DB_USERNAME,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_NAME,
+            synchronize: true,
+            entities: ['dist/**/*.entity.js'],
+            migrations: ['dist/db/migrations/*.js'],
+          });
+          await dataSource.initialize(); // initialize the data source
+          console.log('Database connected successfully');
+          return dataSource;
+        } catch (error) {
+          console.log('Error connecting to database');
+          throw error;
+        }
+      },
+    },
+  ],
+  exports: [DataSource],
+})
+export class TypeOrmModule {}

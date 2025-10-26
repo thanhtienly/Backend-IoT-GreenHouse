@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
-import { CustomRabbitModule } from './rabbitmq.module';
-import { RabbitProducerService } from './services/producer.service';
+import { CustomRabbitModule } from '../rabbitmq/rabbitmq.module';
 import { AuthService } from './services/auth.service';
 import { UserService } from 'src/services/user.service';
 import { TypeOrmModule } from 'src/db/typeorm.module';

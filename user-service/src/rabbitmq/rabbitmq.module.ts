@@ -1,11 +1,16 @@
 import { AmqpConnection, RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RabbitConsumerService } from './services/consumer.service';
+import { RabbitConsumerService } from './consumer.service';
+import { UserService } from 'src/services/user.service';
+import { TypeOrmModule } from 'src/db/typeorm.module';
+import { RabbitProducerService } from './producer.service';
+import { MailService } from 'src/services/mail.service';
 
 @Module({
   imports: [
     ConfigModule.forRoot({}),
+    TypeOrmModule,
     RabbitMQModule.forRoot({
       exchanges: [
         {
@@ -17,8 +22,8 @@ import { RabbitConsumerService } from './services/consumer.service';
       connectionInitOptions: { wait: false },
       queues: [
         {
-          name: 'OTP-email-queue',
-          exchange: process.env.RMG_EXCHANGE,
+          name: 'otp-email-queue',
+          exchange: process.env.RMQ_EXCHANGE,
           createQueueIfNotExists: true,
           routingKey: 'user.email.otp',
           options: {
@@ -27,10 +32,20 @@ import { RabbitConsumerService } from './services/consumer.service';
           },
         },
         {
-          name: 'Sensor-email-queue',
-          exchange: process.env.RMG_EXCHANGE,
+          name: 'sensor-email-queue',
+          exchange: process.env.RMQ_EXCHANGE,
           createQueueIfNotExists: true,
           routingKey: 'user.email.sensor',
+          options: {
+            noAck: false,
+            durable: true,
+          },
+        },
+        {
+          name: 'email-pending-queue',
+          exchange: process.env.RMQ_EXCHANGE,
+          createQueueIfNotExists: true,
+          routingKey: 'user.email.pending',
           options: {
             noAck: false,
             durable: true,
@@ -40,7 +55,13 @@ import { RabbitConsumerService } from './services/consumer.service';
     }),
     CustomRabbitModule,
   ],
-  providers: [ConfigService, RabbitConsumerService],
+  providers: [
+    ConfigService,
+    UserService,
+    RabbitConsumerService,
+    RabbitProducerService,
+    MailService,
+  ],
   exports: [RabbitMQModule],
 })
 export class CustomRabbitModule {}
