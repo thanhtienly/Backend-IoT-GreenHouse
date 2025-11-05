@@ -1,23 +1,23 @@
-import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
-import { Injectable } from '@nestjs/common';
-import * as dotenv from 'dotenv';
+import { RabbitSubscribe } from "@golevelup/nestjs-rabbitmq";
+import { Injectable } from "@nestjs/common";
+import * as dotenv from "dotenv";
 import {
   DeviceModeUpdateDTO,
   PendingActionDeviceDTO,
   SensorDataDTO,
-} from 'src/dto/queue.dto';
+} from "src/dto/queue.dto";
 import {
   Device,
   DeviceHistory,
   DeviceMode,
   ThresholdType,
-} from 'src/entity/device.entity';
-import { DeviceService } from 'src/services/device.service';
-import { RabbitProducerService } from './producer.service';
-import { AdafruitIoMqttService } from 'src/services/mqtt.service';
+} from "src/entity/device.entity";
+import { DeviceService } from "src/services/device.service";
+import { RabbitProducerService } from "./producer.service";
+import { AdafruitIoMqttService } from "src/services/mqtt.service";
 
 dotenv.config({
-  path: '.env.local',
+  path: ".env.local",
 });
 
 @Injectable()
@@ -25,19 +25,19 @@ export class RabbitConsumerService {
   constructor(
     private readonly deviceService: DeviceService,
     private readonly producerService: RabbitProducerService,
-    private readonly mqttService: AdafruitIoMqttService,
+    private readonly mqttService: AdafruitIoMqttService
   ) {}
 
   @RabbitSubscribe({
     exchange: process.env.RMQ_EXCHANGE,
-    routingKey: 'farm.sensor.data',
-    queue: 'sensor-data-queue',
+    routingKey: "farm.sensor.data",
+    queue: "sensor-data-queue",
   })
   public async handleSensorDataQueue(msg: SensorDataDTO) {
-    console.log('Consume sensor data queue');
+    console.log("Consume sensor data queue");
     console.log(msg);
     var deviceConfigs = await this.deviceService.findDeviceConfigBySensorType(
-      msg.sensorType,
+      msg.sensorType
     );
 
     if (deviceConfigs == null) {
@@ -77,7 +77,7 @@ export class RabbitConsumerService {
 
       var device = await this.deviceService.findDeviceByIdAndOppositeMode(
         deviceId,
-        deviceActionModeMap.get(deviceId),
+        deviceActionModeMap.get(deviceId)
       );
 
       if (device != null) {
@@ -105,22 +105,23 @@ export class RabbitConsumerService {
 
   @RabbitSubscribe({
     exchange: process.env.RMQ_EXCHANGE,
-    routingKey: 'device.action.pending',
-    queue: 'device-pending-action-queue',
+    routingKey: "device.action.pending",
+    queue: "device-pending-action-queue",
   })
   public async handleDevicePendingActionQueue(msg: PendingActionDeviceDTO) {
-    console.log('Consume device pending action queue');
+    console.log("Consume device pending action queue");
     console.log(msg);
     this.mqttService.publishToDeviceFeed(msg);
   }
 
   @RabbitSubscribe({
     exchange: process.env.RMQ_EXCHANGE,
-    routingKey: 'device.mode.update',
-    queue: 'device-mode-update-queue',
+    routingKey: "device.mode.update",
+    queue: "device-mode-update-queue",
   })
   public async handleDeviceModeUpdateQueueMessage(msg: DeviceModeUpdateDTO) {
-    console.log('Consume device mode update queue');
+    console.log("Consume device mode update queue");
+    console.log(msg);
     var deviceHistory = new DeviceHistory();
 
     deviceHistory.deviceId = msg.deviceId;

@@ -1,10 +1,10 @@
-import * as mqtt from 'mqtt';
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { RabbitProducerService } from 'src/rabbitmq/producer.service';
-import { ConfigService } from '@nestjs/config';
-import { DeviceModeUpdateDTO, PendingActionDeviceDTO } from 'src/dto/queue.dto';
-import { DeviceService } from './device.service';
-import { Device } from 'src/entity/device.entity';
+import * as mqtt from "mqtt";
+import { Injectable, OnModuleInit } from "@nestjs/common";
+import { RabbitProducerService } from "src/rabbitmq/producer.service";
+import { ConfigService } from "@nestjs/config";
+import { DeviceModeUpdateDTO, PendingActionDeviceDTO } from "src/dto/queue.dto";
+import { DeviceService } from "./device.service";
+import { Device } from "src/entity/device.entity";
 
 @Injectable()
 export class AdafruitIoMqttService implements OnModuleInit {
@@ -19,17 +19,17 @@ export class AdafruitIoMqttService implements OnModuleInit {
   constructor(
     private readonly producer: RabbitProducerService,
     private readonly configService: ConfigService,
-    private readonly deviceService: DeviceService,
+    private readonly deviceService: DeviceService
   ) {
-    this.AIO_USERNAME = this.configService.get('AIO_USERNAME');
-    this.AIO_KEY = this.configService.get('AIO_KEY');
-    this.MQTT_BROKER_URL = this.configService.get('MQTT_BROKER_URL');
-    this.MQTT_PORT = this.configService.get('MQTT_PORT');
+    this.AIO_USERNAME = this.configService.get("AIO_USERNAME");
+    this.AIO_KEY = this.configService.get("AIO_KEY");
+    this.MQTT_BROKER_URL = this.configService.get("MQTT_BROKER_URL");
+    this.MQTT_PORT = this.configService.get("MQTT_PORT");
     this.DEVICE_CONTROL_PREFIX = this.configService.get(
-      'DEVICE_CONTROL_PREFIX',
+      "DEVICE_CONTROL_PREFIX"
     );
     this.DEVICE_MODE_UPDATE_PREFIX = this.configService.get(
-      'DEVICE_MODE_UPDATE_PREFIX',
+      "DEVICE_MODE_UPDATE_PREFIX"
     );
   }
 
@@ -41,12 +41,12 @@ export class AdafruitIoMqttService implements OnModuleInit {
       port: this.MQTT_PORT,
     });
 
-    this.client.on('connect', () => {
+    this.client.on("connect", () => {
       this.subscribeFeeds(devices);
-      console.log('Connected to Adafruit IO MQTT broker');
+      console.log("Connected to Adafruit IO MQTT broker");
     });
 
-    this.client.on('message', (topic, message) => {
+    this.client.on("message", (topic, message) => {
       var msgStr = message.toString();
 
       /* Don't need to follow up the control message */
@@ -59,8 +59,8 @@ export class AdafruitIoMqttService implements OnModuleInit {
       }
     });
 
-    this.client.on('error', (err) => {
-      console.error('MQTT error:', err);
+    this.client.on("error", (err) => {
+      console.error("MQTT error:", err);
     });
   }
 
@@ -87,12 +87,12 @@ export class AdafruitIoMqttService implements OnModuleInit {
     };
     this.client.publish(
       topic,
-      `control:${JSON.stringify(deviceControlMessage)}`,
+      `control:${JSON.stringify(deviceControlMessage)}`
     );
   }
 
   private handleDeviceModeUpdate(msg: string) {
-    var message = msg.replace(this.DEVICE_MODE_UPDATE_PREFIX, '');
+    var message = msg.replace(this.DEVICE_MODE_UPDATE_PREFIX, "");
     console.log(message);
     try {
       var jsonMsg: DeviceModeUpdateDTO = JSON.parse(message);
